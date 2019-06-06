@@ -14,6 +14,16 @@ chrome.runtime.onMessage.addListener(
 					function(eventObject)
 					{
 						console.log("text area changed!");
+						var elem = eventObject.target;
+						var text = elem.value;
+						console.log("original: " + text);
+						var replaced = text.replace(/millenial/gi, 'snake people');
+						console.log("changed to: " + replaced);
+						if (replaced !== text)
+						{
+							console.log("replaced!");
+							elem.value = replaced;
+						}
 					}
 				);
 			}
@@ -30,11 +40,8 @@ chrome.runtime.onMessage.addListener(
 					}
 				);
 			}
-
-
 		}
 	}
 );
-
 
 console.log("gavin's content script is done now.");
