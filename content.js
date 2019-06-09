@@ -15,6 +15,7 @@ var cmd_regex_single = new RegExp(cmd_regex_start_sequence
 console.log(cmd_regex);
 console.log(cmd_regex_single);
 
+
 // -----------------------------------------------------------------------------
 //  Initialization : On completion,  window.mie_albums  will be set
 // -----------------------------------------------------------------------------
@@ -98,6 +99,7 @@ function	GetEmojiSet(album_arr)
 		}
 	});
 }
+
 
 // -----------------------------------------------------------------------------
 //  TESTING: adds a new text area
@@ -237,3 +239,74 @@ function	GetEmojiUrlByTagId(album, tag_id)
 	}
 	return (null);
 }
+
+// -----------------------------------------------------------------------------
+//  Listen for Messages
+// -----------------------------------------------------------------------------
+
+chrome.runtime.onMessage.addListener(
+	function(request, sender, sendResponse)
+	{
+		if (request.message === "disabled currently")
+		{
+			console.log(request.url);
+		}
+		else if (request.message === "propogate_to_log")
+		{
+			console.log(request.data);
+		}
+		else if (request.message === "query_album_hash")
+		{
+			QueryAlbumHash(request.album_hash, sendResponse);
+		}
+		else if (request.message === "add_album")
+		{
+			var album_name = "";
+			while (true) {
+				album_name = (prompt("Enter a name for this album", album_name).trim());
+				if (album_name == null)
+					return ;
+				else if (album_name == "" || album_name.match(/[^a-z0-9_-]/i))
+					alert('Album names may only include a-z, A-Z, 0-9, _, and -, and cannot be empty');
+				else
+					break ;
+			}
+			AddAlbum(request.album_hash, album_name, sendResponse);
+		}
+	});
+
+
+function	AddAlbum(album_hash, album_name, sendResponse)
+{
+	var album_arr = [ album_hash, album_name ];
+	GetEmojiSet(album_arr);
+	window.mie_albums.push(album_arr);
+	console.log('album added. window.mie_albums is now:');
+	console.log(window.mie_albums);
+}
+
+function	QueryAlbumHash(album_hash, sendResponse)
+{
+	console.log('querying album hash: ' + album_hash);
+	if (!(window.mie_albums))
+	{
+		console.error('could not query album hash: albums not yet loaded.');
+		if (sendResponse) sendResponse({response: "error"});
+		return null;
+	}
+	for (var i = 0; i < window.mie_albums.length; i++)
+	{
+		if (window.mie_albums[i][0] == album_hash)
+		{
+			if (sendResponse) sendResponse({response: "listed"});
+			return true;
+		}
+	}
+	if (sendResponse) sendResponse({response: "not_listed"});
+	return false;
+}
+
+
+
+
+
