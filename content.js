@@ -12,58 +12,114 @@ var cmd_regex_single = new RegExp(cmd_regex_start_sequence
 							+ '(.*?)'
 							+ cmd_regex_stop_sequence,
 							'i');
-console.log(cmd_regex);
-console.log(cmd_regex_single);
-
 
 // -----------------------------------------------------------------------------
 //  Initialization : On completion,  window.mie_albums  will be set
 // -----------------------------------------------------------------------------
 
-chrome.storage.local.get({mie_albums: []}, OnSavedAlbumsLoad);
-chrome.storage.local.get({mie_default_album: null}, OnDefaultAlbumLoad);
-
-function	OnSavedAlbumsLoad(items)
+function	LoadAlbums()
 {
-	if (chrome.runtime.lastError) {
-		console.log(chrome.runtime.lastError);
-	}
-	else if (items.mie_albums.length > 0) {
-		window.mie_albums = items.mie_albums;
-		console.log("got items: ");
-		console.log(window.mie_albums);
-	}
-	else {
-		console.log("items not found. Creating now.");
-		window.mie_albums = [
-				[ 'rBCv3jY', 'yagi-foxgirl' ],
-				[ 'UtTtQXG', 'catman' ] ];
-		chrome.storage.local.set(
-			{'mie_albums': window.mie_albums},
-			OnStorageSet);
-	}
-	window.mie_albums.forEach(function(album_arr) {
-		GetEmojiSet(album_arr);
+	return new Promise(function(resolve, reject)
+	{
+		chrome.storage.local.get({mie_albums: []}, 
+			function(items)
+			{
+				if (chrome.runtime.lastError) {
+					console.log(chrome.runtime.lastError);
+					reject(Error('There was a problem loading user data from local storage'));
+				}
+				else if (items.mie_albums.length > 0) {
+					window.mie_albums = items.mie_albums;
+					console.log("got items: ");
+					console.log(window.mie_albums);
+					resolve();
+				}
+				else {
+					console.log("items not found. Creating now.");
+					window.mie_albums = [
+							[ 'rBCv3jY', 'yagi-foxgirl' ],
+							[ 'UtTtQXG', 'catman' ] ];
+					resolve();
+					chrome.storage.local.set(
+						{'mie_albums': window.mie_albums},
+						OnStorageSet);
+				}
+			});
 	});
 }
 
-function	OnDefaultAlbumLoad(items)
+function	LoadDefaultAlbum()
 {
-	if (chrome.runtime.lastError) {
-		console.log(chrome.runtime.lastError);
-	}
-	else if (items.mie_default_album != null) {
-		window.mie_default_album = items.mie_default_album;
-		console.log("got default album: " + window.mie_default_album);
-	}
-	else {
-		console.log("Default album not found. Creating now.");
-		window.mie_default_album = 'yagi-foxgirl';
-		chrome.storage.local.set(
-			{'mie_default_album': window.mie_default_album},
-			OnStorageSet);
-	}
+	return new Promise(function(resolve, reject)
+	{
+		chrome.storage.local.get({mie_default_album: null},
+			function(items)
+			{
+				if (chrome.runtime.lastError) {
+					console.log(chrome.runtime.lastError);
+					reject(Error('There was a problem loading the default album'));
+				}
+				else if (items.mie_default_album != null) {
+					window.mie_default_album = items.mie_default_album;
+					console.log("got default album: " + window.mie_default_album);
+					resolve();
+				}
+				else {
+					console.log("Default album not found. Creating now.");
+					window.mie_default_album = 'yagi-foxgirl';
+					resolve();
+					chrome.storage.local.set(
+						{'mie_default_album': window.mie_default_album},
+						OnStorageSet);
+				}
+			});
+	});
 }
+
+function	GetEmojiSet(album_arr)
+{
+	return new Promise(function(resolve, reject)
+	{
+		console.log('getting album images data for hash: ' + album_arr[0]);
+		$.ajax({
+			url: 'https://api.imgur.com/3/album/' + album_arr[0] + '/images',
+			type: 'GET',
+			headers: {
+				Authorization: 'Client-ID 7ead1100b84dd7f'
+			},
+			success: function(data) {
+				var min_data = [];
+				data.data.forEach(function(img_data) {
+					min_data.push([img_data.id, img_data.description, img_data.link]);
+				});
+				album_arr.push(min_data);
+				resolve();
+				console.log('got album data:');
+				console.log(album_arr);
+			},
+			error: function(data) {
+				reject(Error('error fetching album data from imgur api'));
+			}
+		});
+	});
+}
+
+LoadAlbums().then(
+	function() { //resolve
+		console.log('success loading albums')
+		//Since we were successful in the last step, load the album images data
+		for (var i = 0; i < window.mie_albums.length; i++) {
+			GetEmojiSet(window.mie_albums[i]).then(
+				function() { console.log('success loading album images data'); },
+				function() { console.log('error loading album images data'); }
+			);
+		}
+	},
+	function() { console.log('failed to load albums') });
+
+LoadDefaultAlbum().then(
+	function() { console.log('success loading default album') },
+	function() { console.log('failed to load default album') });
 
 function	OnStorageSet()
 {
@@ -74,32 +130,6 @@ function	OnStorageSet()
 		console.log('items created.');
 	}
 }
-
-function	GetEmojiSet(album_arr)
-{
-	console.log('getting album images data for hash: ' + album_arr[0]);
-	$.ajax({
-		url: 'https://api.imgur.com/3/album/' + album_arr[0] + '/images',
-		type: 'GET',
-		headers: {
-			Authorization: 'Client-ID 7ead1100b84dd7f'
-		},
-		success: function(data) {
-			var min_data = [];
-			data.data.forEach(function(img_data) {
-				min_data.push([img_data.id, img_data.description, img_data.link]);
-			});
-			album_arr.push(min_data);
-			console.log('got album data:');
-			console.log(album_arr);
-		},
-		error: function(data) {
-			console.log('error');
-			console.log(data);
-		}
-	});
-}
-
 
 // -----------------------------------------------------------------------------
 //  TESTING: adds a new text area
@@ -117,7 +147,7 @@ try {
 	console.log('test button activated');
 }
 catch (err) {
-	console.warn('adding listener test function addTextArea() failed: testButton not found.');
+	console.log('adding listener test function addTextArea() failed: testButton not found.');
 }
 
 // -----------------------------------------------------------------------------
@@ -247,20 +277,16 @@ function	GetEmojiUrlByTagId(album, tag_id)
 chrome.runtime.onMessage.addListener(
 	function(request, sender, sendResponse)
 	{
-		if (request.message === "disabled currently")
-		{
+		if (request.message === "disabled currently") {
 			console.log(request.url);
 		}
-		else if (request.message === "propogate_to_log")
-		{
+		else if (request.message === "propogate_to_log") {
 			console.log(request.data);
 		}
-		else if (request.message === "query_album_hash")
-		{
+		else if (request.message === "query_album_hash") {
 			QueryAlbumHash(request.album_hash, sendResponse);
 		}
-		else if (request.message === "add_album")
-		{
+		else if (request.message === "add_album") {
 			var album_name = "";
 			while (true) {
 				album_name = (prompt("Enter a name for this album", album_name).trim());
@@ -271,33 +297,69 @@ chrome.runtime.onMessage.addListener(
 				else
 					break ;
 			}
-			AddAlbum(request.album_hash, album_name, sendResponse);
+			AddAlbum(request.album_hash, album_name).then(
+				function() { console.log('success adding album'); sendResponse('success'); },
+				function() { console.log('failed to add album'); sendResponse('failure'); }
+			);
 		}
 	});
 
-
-function	AddAlbum(album_hash, album_name, sendResponse)
+function	SaveAlbums()
 {
-	var album_arr = [ album_hash, album_name ];
-	GetEmojiSet(album_arr);
-	window.mie_albums.push(album_arr);
-	console.log('album added. window.mie_albums is now:');
-	console.log(window.mie_albums);
+	return new Promise(function(resolve, reject)
+	{
+		if (!(window.mie_albums)) {
+			reject(Error('error saving albums: no album data loaded'));
+			return false;
+		}
+		var mie_albums = [];
+		for (var i = 0; i < window.mie_albums.length; i++)
+			mie_albums.push([window.mie_albums[i][0], window.mie_albums[i][1]]);
+		chrome.storage.local.set(
+			{'mie_albums': mie_albums},
+			function() {
+				if (chrome.runtime.lastError) {
+					console.log(chrome.runtime.lastError);
+					reject(Error('runtime error while saving albums'));
+				}
+				else {
+					resolve();
+					console.log('albums saved.');
+				}
+			});
+	});
+}
+
+function	AddAlbum(album_hash, album_name)
+{
+	return new Promise(function(resolve, reject)
+	{
+		var album_arr = [ album_hash, album_name ];
+		GetEmojiSet(album_arr).then(
+			function() { //on resolve
+				window.mie_albums.push(album_arr);
+				console.log('album added. window.mie_albums is now:');
+				console.log(window.mie_albums);
+				SaveAlbums().then(
+					function() { resolve(); },
+					function() { reject(Error('error saving albums.')); }
+				);
+			},
+			function() { reject(Error('error getting emoji set for new album')); }
+		);
+	});
 }
 
 function	QueryAlbumHash(album_hash, sendResponse)
 {
 	console.log('querying album hash: ' + album_hash);
-	if (!(window.mie_albums))
-	{
+	if (!(window.mie_albums)) {
 		console.error('could not query album hash: albums not yet loaded.');
 		if (sendResponse) sendResponse({response: "error"});
 		return null;
 	}
-	for (var i = 0; i < window.mie_albums.length; i++)
-	{
-		if (window.mie_albums[i][0] == album_hash)
-		{
+	for (var i = 0; i < window.mie_albums.length; i++) {
+		if (window.mie_albums[i][0] == album_hash) {
 			if (sendResponse) sendResponse({response: "listed"});
 			return true;
 		}
@@ -305,8 +367,4 @@ function	QueryAlbumHash(album_hash, sendResponse)
 	if (sendResponse) sendResponse({response: "not_listed"});
 	return false;
 }
-
-
-
-
 
