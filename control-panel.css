@@ -1,0 +1,55 @@
+#albums-container {
+	text-align: center;
+	width: 97%;
+}
+
+table {
+	margin-left: auto;
+	margin-right: auto;
+}
+
+td.album-info {
+	margin-left: 20px;
+}
+
+.album {
+	display: block;
+	background-color: aliceblue;
+}
+
+
+.album-image-cont {
+
+}
+
+.album-image {
+	max-width: 100px;
+	max-height: 100px;
+}
+
+.album-title-cont {
+	width: 200px;
+	margin-top: 10px;
+	margin-bottom: 10px;
+}
+
+input.album-title {
+	
+}
+
+button.album-delete-button {
+
+}
+
+.album-delete-button-cont {
+	text-align: right;
+}
+
+.update-form-label {
+	display: inline-block;
+	min-width: 120px;
+}
+
+div.default-label {
+	display: inline-block;
+}

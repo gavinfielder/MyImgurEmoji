@@ -1,100 +1,53 @@
-/*
-chrome.browserAction.onClicked.addListener(function(tab)
-	{
-		chrome.tabs.query({active: true, currentWindow: true}, function(tabs)
-			{
-				var activeTab = tabs[0];
-				chrome.tabs.sendMessage(activeTab.id, {
-					"message": "clicked_browser_action",
-					"url": activeTab.url
-				});
-			}
-		);
-	});
-*/
-
-//$('#add-album-button').click(
-
-
-//If the popup is opened on an imgur album, see if we've already
-//listed the album in our settings
-GetActiveTab(function(activeTab) {
-LogMessageToActiveTab('on url: ' + activeTab.url);
-var match = activeTab.url.match(/imgur\.com\/a\/([a-z0-9_-]*)/i);
-if (match) {
-	$('#add-album-button').css('display', 'inline-block');
-	var album_hash = match[1];
-	chrome.tabs.sendMessage(activeTab.id, {
-			"message": "query_album_hash",
-			"album_hash": album_hash
-		},
-		function(response) {
-			if (response.response == "listed") {
-				$('#add-album-button').html('Album already listed');
-				$('#add-album-button').prop('disabled', true);
-			}
-			else if (response.response == "not_listed") {
-				$('#add-album-button').prop('disabled', false);
-				$('#add-album-button').click(OnAddAlbumClick);
-			}
-	});
-}
-else {
-	//not an imgur album
-	$('#add-album-button').css('display', 'none');
-}
-}); //end GetActiveTab(function(activeTab) { ...
-
-function	GetActiveTab(callback)
-{
-	chrome.tabs.query({active: true, currentWindow: true}, function(tabs)
-		{
-			var activeTab = tabs[0];
-			callback(activeTab);
-		}
-	);
-}
-
-function	LogMessageToActiveTab(msg)
-{
-	GetActiveTab(function(activeTab) {
-		chrome.tabs.sendMessage(activeTab.id, {
-			"message": "propogate_to_log",
-			"data": msg
+// -----------------------------------------------------------------------------
+//  Initialization : On completion,  window.mie_albums  will be set
+// -----------------------------------------------------------------------------
+LoadAlbums().then(
+	function() { //resolve
+		console.log('success loading albums')
+		//Since we were successful in the last step, load the album images data
+		window.mie_albums.forEach(function(album_arr) {
+			GetEmojiSet(album_arr).then(
+				function() { 
+					console.log('success loading album images data');
+					DisplayAlbum(album_arr);
+				},
+				function() { console.log('error loading album images data'); }
+			);
 		});
-	});
-}
+	},
+	function() { console.log('failed to load albums') });
 
-function	OnAddAlbumClick(eventObject)
+LoadDefaultAlbum().then(
+	function() { console.log('success loading default album') },
+	function() { console.log('failed to load default album') });
+
+var album_template = $(".album");
+album_template.detach();
+
+function RefreshAlbumDisplay()
 {
-	var btn = eventObject.target;
-	GetActiveTab(function(activeTab) {
-		var match = activeTab.url.match(/imgur\.com\/a\/([a-z0-9_-]*)/i);
-		if (!match)
-		{
-			alert('error: no match on add album click');
-			return ;
-		}
-		chrome.tabs.sendMessage(activeTab.id, {
-			"message": "add_album",
-			"album_hash": match[1]
-		});
-	});
+	$('#albums-container').find('.album').remove();
+	for (var i = 0; i < window.mie_albums.length; i++) {
+		DisplayAlbum(window.mie_albums[i]);
+	}
 }
 
-LogMessageToActiveTab('opened the extension popup!');
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+function DisplayAlbum(album_arr) {
+	var album = album_template.clone();
+	album.find('.album-image').attr('src', album_arr[2][0][2]);
+	album.find('.album-link').find('a')
+		.attr('href', 'https://imgur.com/a/' + album_arr[0]);
+	album.find('.album-link').find('a')
+		.html('https://imgur.com/a/' + album_arr[0]);
+	album.find('.album-title').attr('value', album_arr[1]);
+	album.appendTo($('#albums-container').find('table'));
+	if (album_arr[1] == window.mie_default_album) {
+		album.find('.set-as-default-button').css('display', 'none');
+		album.find('.default-label').css('display', 'inline-block');
+	}
+	else {
+		album.find('.set-as-default-button').css('display', 'default');
+		album.find('.default-label').css('display', 'none');
+	}
+}
 

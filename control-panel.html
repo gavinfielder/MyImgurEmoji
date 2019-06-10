@@ -1,0 +1,43 @@
+<html>
+<head>
+	<title>MyImgurEmoji</title>
+	<link rel="stylesheet" href="control-panel.css">
+</head>
+<body>
+	<h1>MyImgurEmoji Control Panel</h1>
+	<h2>Global Settings</h2>
+
+	<div class="update-form-label">Command start:</div>
+	<input type="text" id="cmd-begin">
+	<br>
+	<div class="update-form-label">Command end:</div>
+	<input type="text" id="cmd-end">
+
+	<h2>Albums</h2>
+	<div id="albums-container" align="center">
+		<table>
+			<tr class="album">
+				<td class="album-image-cont">
+					<img class="album-image" src="image.png"></img>
+				</td>
+				<td class="album-info">
+					<div class="album-link"><a href="http://www.example.com">http://www.example.com</a></div>
+					<div class="album-title-cont">
+						<input class="album-title" value="placeholder">
+					</div>
+					<div class="album-delete-button-cont">
+						<div class="default-label">Default Album</div>
+						<button class="set-as-default-button">Set As Default</button>
+						<button class="album-delete-button">Remove</button>
+					</div>
+				</td>
+			</tr>
+		</table>
+	</div>
+
+	<button id="save-button">Save Preferences</button>
+	<script src="jquery-3.4.1.js" type="text/javascript"></script>
+	<script src="data.js" type="text/javascript"></script>
+	<script src="control-panel.js" type="text/javascript"></script>
+</body>
+</html>
