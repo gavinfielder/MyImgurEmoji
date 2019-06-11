@@ -1,21 +1,3 @@
-/*
-chrome.browserAction.onClicked.addListener(function(tab)
-	{
-		chrome.tabs.query({active: true, currentWindow: true}, function(tabs)
-			{
-				var activeTab = tabs[0];
-				chrome.tabs.sendMessage(activeTab.id, {
-					"message": "clicked_browser_action",
-					"url": activeTab.url
-				});
-			}
-		);
-	});
-*/
-
-//$('#add-album-button').click(
-
-
 //If the popup is opened on an imgur album, see if we've already
 //listed the album in our settings
 GetActiveTab(function(activeTab) {
@@ -45,25 +27,6 @@ else {
 }
 }); //end GetActiveTab(function(activeTab) { ...
 
-function	GetActiveTab(callback)
-{
-	chrome.tabs.query({active: true, currentWindow: true}, function(tabs)
-		{
-			var activeTab = tabs[0];
-			callback(activeTab);
-		}
-	);
-}
-
-function	LogMessageToActiveTab(msg)
-{
-	GetActiveTab(function(activeTab) {
-		chrome.tabs.sendMessage(activeTab.id, {
-			"message": "propogate_to_log",
-			"data": msg
-		});
-	});
-}
 
 function	OnAddAlbumClick(eventObject)
 {
@@ -81,6 +44,17 @@ function	OnAddAlbumClick(eventObject)
 		});
 	});
 }
+
+function	OnReinitializePageButtonClick(eventObject)
+{
+	GetActiveTab(function(activeTab) {
+		chrome.tabs.sendMessage(activeTab.id, {
+			"message": "reinitialize_page"
+		});
+	});
+}
+
+$('#reinitialize-page-button').click(OnReinitializePageButtonClick);
 
 LogMessageToActiveTab('opened the extension popup!');
 

@@ -6,14 +6,32 @@
 <body>
 	<h1>MyImgurEmoji Control Panel</h1>
 	<h2>Global Settings</h2>
-
+	<p>This defines how a MyImgurEmoji query is recognized and triggered. MyImgurEmoji will look for text that starts and ends with the below.<p>
 	<div class="update-form-label">Command start:</div>
 	<input type="text" id="cmd-begin">
 	<br>
 	<div class="update-form-label">Command end:</div>
 	<input type="text" id="cmd-end">
+	<br>
+
+	<h2>URL Wrappers</h2>
+	<p>Websites that match the selections below will add the specified text before and after the fetched image url when using MyImgurEmoji. To delete URL wrappers, clear the Site URL Regular Expression.</p>
+	<div id="wrappers-container" align="center">
+		<table>
+			<tr class="wrappers-header">
+				<td>Site URL Regular Expression</td>
+				<td>Image URL wrapper start, end</td>
+			</tr>
+			<tr class="wrapper">
+				<td><input class="wrapper-url-match"></td>
+				<td><input class="wrapper-input wrapper-input-start"><input class="wrapper-input wrapper-input-end"></td>
+			</tr>
+		</table>
+		<button id="add-wrapper-button">Add URL Wrapper</button>
+	</div>
 
 	<h2>Albums</h2>
+	<p>These are the albums you have added to MyImgurEmoji. To add new albums, navigate to an Imgur album and use the MyImgurEmoji extension button.</p>
 	<div id="albums-container" align="center">
 		<table>
 			<tr class="album">
@@ -35,8 +53,10 @@
 		</table>
 	</div>
 
+	<div id="error-message"></div>
 	<button id="save-button">Save Preferences</button>
 	<script src="jquery-3.4.1.js" type="text/javascript"></script>
+	<script src="common.js" type="text/javascript"></script>
 	<script src="data.js" type="text/javascript"></script>
 	<script src="control-panel.js" type="text/javascript"></script>
 </body>

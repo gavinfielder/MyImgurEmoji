@@ -53,3 +53,17 @@ button.album-delete-button {
 div.default-label {
 	display: inline-block;
 }
+
+tr.wrappers-header {
+	font-size: 12px;
+}
+
+input.wrapper-input {
+	width: 100px;
+	text-align: center;
+}
+
+input.wrapper-url-match {
+	width: 300px;
+}
+
