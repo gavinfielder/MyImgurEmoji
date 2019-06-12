@@ -55,6 +55,7 @@ Promise.all([LoadCommandStart(), LoadCommandEnd()]).then(
 									+ cmd_regex_stop_sequence,
 									'i');
 		console.log('command regex: ', cmd_regex);
+		RegisterTextAreas();
 	},
 	function() { console.log('failed to load command start, end; defaults @mie ... @ retained.'); }
 );
@@ -90,14 +91,14 @@ var observer = new MutationObserver(function(mutations) {
 		for (var i = 0; i < mutation.addedNodes.length; i++) {
 			var elem = mutation.addedNodes[i];
 			console.log('A DOM node was inserted: ' + elem.nodeName);
-			$(elem).children("textarea").on('input', OnTextAreaInput);
+			$(elem).find("textarea").on('input', OnTextAreaInput);
 		}
 	})
 });
 observer.observe(document.body, { childList: true, subtree: true });
 
 //Add listeners to all the text areas currently on the page
-RegisterTextAreas();
+
 
 function	OnTextAreaInput(eventObject) {
 	var elem = eventObject.target;
@@ -122,8 +123,11 @@ function	RegisterTextAreas() {
 	for (var i = 0; i < elements.length; i++) {
 		var element = elements[i];
 		element.addEventListener("input", OnTextAreaInput);
+		console.log('text area registered!');
 	}
 }
+
+//setInterval(function() { RegisterTextAreas(); }, 3000);
 
 // -----------------------------------------------------------------------------
 //  Command Parsing
@@ -260,7 +264,17 @@ function	AddAlbum(album_hash, album_name)
 				console.log('album added. window.mie_albums is now:');
 				console.log(window.mie_albums);
 				SaveAlbums().then(
-					function() { resolve(); },
+					function() {
+						resolve();
+						if (window.mie_albums.length == 1 && (window.mie_default_album != album_name))
+						{
+							window.mie_default_album = album_name;
+							SaveDefaultAlbum().then(
+								function() { console.log('saved default album'); },
+								function() { console.log('could not save default album'); }
+							);
+						}
+					},
 					function() { reject(Error('error saving albums.')); }
 				);
 			},
@@ -286,4 +300,6 @@ function	QueryAlbumHash(album_hash, sendResponse)
 	if (sendResponse) sendResponse({response: "not_listed"});
 	return false;
 }
+
+RegisterTextAreas();
 

@@ -20,14 +20,9 @@ function	LoadAlbums()
 					resolve();
 				}
 				else {
-					console.log("items not found. Creating now.");
-					window.mie_albums = [
-							[ 'rBCv3jY', 'yagi-foxgirl' ],
-							[ 'UtTtQXG', 'catman' ] ];
+					console.log("no albums found.");
+					window.mie_albums = [];
 					resolve();
-					chrome.storage.local.set(
-						{'mie_albums': window.mie_albums},
-						OnStorageSet);
 				}
 			});
 	});
@@ -186,9 +181,8 @@ function	SaveDefaultAlbum()
 {
 	return new Promise(function(resolve, reject)
 	{
-		if (!(window.mie_default_album)) {
-			reject(Error('error saving default album: no default album data loaded'));
-			return false;
+		if (window.mie_default_album == undefined) {
+			window.mie_default_album = null;
 		}
 		chrome.storage.local.set(
 			{'mie_default_album': window.mie_default_album},

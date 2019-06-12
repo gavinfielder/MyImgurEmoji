@@ -1,3 +1,31 @@
+body {
+	font-family: helvetica;
+	color: #292929;
+	background-color: white;
+}
+
+button#save-button,button#add-wrapper-button {
+	display: inline-block;
+	padding: 5px 5px 5px 5px;
+	margin: 5px 5px 5px 5px;
+	background-color: #1D50AD;
+	font-size: 14px;
+	width: 160px;
+	color: white;
+}
+
+h1,h2,h3 {
+	color: #2F3A70;
+}
+
+button.set-as-default-button,button.album-delete-button {
+	/*padding: 5px 5px 5px 5px;*/
+	/*margin: 5px 5px 5px 5px;*/
+	background-color: #D9D9D9;
+	font-size: 14px;
+	border-radius: 5px;
+}
+
 #albums-container {
 	text-align: center;
 	width: 97%;
@@ -8,6 +36,11 @@ table {
 	margin-right: auto;
 }
 
+span.code {
+	background-color: #DDDDDD;
+	font-family: courier;
+}
+
 td.album-info {
 	margin-left: 20px;
 }
@@ -15,16 +48,25 @@ td.album-info {
 .album {
 	display: block;
 	background-color: aliceblue;
+	margin-bottom: 15px;
+
 }
 
+div#no-albums-msg {
+	display: inline-block;
+	background-color: aliceblue;
+	width: 400px;
+	padding: 20px 20px 20px 20px;
+	margin: 10px 10px 10px 10px;
+}
 
 .album-image-cont {
 
 }
 
 .album-image {
-	max-width: 100px;
-	max-height: 100px;
+	max-width: 135px;
+	max-height: 135px;
 }
 
 .album-title-cont {
@@ -34,11 +76,7 @@ td.album-info {
 }
 
 input.album-title {
-	
-}
-
-button.album-delete-button {
-
+	width: 100%;
 }
 
 .album-delete-button-cont {
@@ -52,6 +90,9 @@ button.album-delete-button {
 
 div.default-label {
 	display: inline-block;
+	color: #1C6E12;
+	font-size: 14px;
+	font-style: italic;
 }
 
 tr.wrappers-header {
@@ -66,4 +107,50 @@ input.wrapper-input {
 input.wrapper-url-match {
 	width: 300px;
 }
+
+span.cmd-edit-disabled-msg {
+	font-size: 12px;
+	font-style: italic;
+	/*font-weight: lighter;*/
+	color: #999999;
+}
+
+#success-message {
+	background-color: #8CDE7A;
+	padding-left: 10px;
+	padding-right: 10px;
+	padding-top: 5px;
+	padding-bottom: 5px;
+	margin-top: 10px;
+	margin-bottom: 10px;
+	font-style: italic;
+}
+
+#error-message {
+	background-color: #E04438;
+	padding-left: 10px;
+	padding-right: 10px;
+	padding-top: 5px;
+	padding-bottom: 5px;
+	margin-top: 10px;
+	margin-bottom: 10px;
+	font-style: italic;
+}
+
+div.query-instructions {
+	font-style: italic;
+	font-size: 12px;
+	margin-bottom: 10px;
+}
+
+
+
+
+
+
+
+
+
+
+
 

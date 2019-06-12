@@ -1,6 +1,11 @@
 // -----------------------------------------------------------------------------
 //  Initialization : On completion,  window.mie_albums  will be set
 // -----------------------------------------------------------------------------
+
+LoadDefaultAlbum().then(
+	function() { console.log('success loading default album') },
+	function() { console.log('failed to load default album') });
+
 LoadAlbums().then(
 	function() { //resolve
 		console.log('success loading albums')
@@ -17,14 +22,11 @@ LoadAlbums().then(
 	},
 	function() { console.log('failed to load albums') });
 
-LoadDefaultAlbum().then(
-	function() { console.log('success loading default album') },
-	function() { console.log('failed to load default album') });
-
 LoadCommandStart().then(
 	function() {
 		console.log('success loading command start');
 		$('#cmd-begin').attr('value', window.mie_cmd_start);
+		//$('#cmd-begin').prop('disabled', true);
 	},
 	function() { console.log('failed loading command start') });
 
@@ -32,9 +34,9 @@ LoadCommandEnd().then(
 	function() {
 		console.log('success loading command end');
 		$('#cmd-end').attr('value', window.mie_cmd_end);
+		//$('#cmd-end').prop('disabled', true);
 	},
 	function() { console.log('failed loading command end') });
-
 
 var album_template = $("tr.album");
 album_template.detach();
@@ -57,6 +59,9 @@ function	DisplayAlbum(album_arr) {
 	album.find('.album-link').find('a')
 		.html('https://imgur.com/a/' + album_arr[0]);
 	album.find('.album-title').attr('value', album_arr[1]);
+	album.find('input.album-title').on('input', function(eventObject) {
+		UpdateQueryInstructions(album);
+	});
 	album.appendTo($('#albums-container').find('table'));
 	album.find('.set-as-default-button').click(OnSetAsDefaultButtonClick);
 	album.find('.album-delete-button').click(OnRemoveButtonClick);
@@ -68,6 +73,8 @@ function	DisplayAlbum(album_arr) {
 		album.find('.set-as-default-button').css('display', 'inline-block');
 		album.find('.default-label').css('display', 'none');
 	}
+	UpdateQueryInstructions(album);
+	$('#no-albums-msg').css('display', 'none');
 }
 
 function	AddNewUrlWrapperRow()
@@ -96,8 +103,9 @@ function	DisplayUrlWrapper(wrapper_arr) {
 }
 
 function	RemoveDefaultAlbum() {
-	$('#albums-container').find('.set-as-default-button').css('display', 'inline-block');
+	
 	$('#albums-container').find('.default-label').css('display', 'none');
+	$('#albums-container').find('.set-as-default-button').css('display', 'initial');
 }
 
 function	OnSetAsDefaultButtonClick(eventObject) {
@@ -106,6 +114,7 @@ function	OnSetAsDefaultButtonClick(eventObject) {
 	$('div.defaultlabel').css('display', 'none');
 	$(eventObject.target).css('display', 'none');
 	album.find('div.default-label').css('display', 'inline-block');
+	$('tr.album').toArray().forEach(function(album) { UpdateQueryInstructions($(album)); });
 }
 
 function	OnRemoveButtonClick(eventObject) {
@@ -121,20 +130,23 @@ function	ValidatePreferences() {
 	var cmd_end = $('#cmd-end').val().trim();
 	if (cmd_start.length < 1 || cmd_end.length < 1) {
 		$('#error-message').html('Command start and command end cannot be empty');
+		$('#error-message').css('display', 'block');
 		return false;
 	}
 	var album_titles = $('input.album-title').toArray();
 	for (var i = 0; i < album_titles.length; i++) {
 		if ($(album_titles[i]).val().trim().length < 1) {
 			$('#error-message').html('Album names cannot be empty');
+			$('#error-message').css('display', 'block');
 			return false;
 		}
 		if ($(album_titles[i]).val().match(/[^a-zA-Z0-9_-]/i)) {
 			$('#error-message').html('Album names may only contain a-z, 0-9, _ and -');
+			$('#error-message').css('display', 'block');
 			return false;
 		}
 	}
-	$('#error-message').html('');
+	$('#error-message').css('display', 'none');
 	return true;
 }
 
@@ -142,6 +154,18 @@ function	OnSavePreferencesButtonClick() {
 	ValidatePreferences() && SavePreferences();
 }
 
+function	UpdateQueryInstructions(album)
+{
+	var album_name = album.find('input.album-title').val().trim();
+	var is_default;
+	var instr = album.find('.query-instructions');
+	var cmd_start = $('#cmd-begin').val().trim();
+	var cmd_end = $('#cmd-end').val().trim();
+	if (album.find('div.default-label:visible').length > 0)
+		instr.html('Usage: ' + cmd_start + ' [...] ' + cmd_end);
+	else
+		instr.html('Usage: ' + cmd_start + ' -s ' + album_name + ' [...] ' + cmd_end);
+}
 function	SavePreferences() {
 	var cmd_start = $('#cmd-begin').val().trim();
 	var cmd_end = $('#cmd-end').val().trim();
@@ -173,8 +197,14 @@ function	SavePreferences() {
 	}
 	var visible_default_album = $('div.default-label:visible');
 	if (visible_default_album)
+	{
 		default_album = visible_default_album.parents('tr.album')
-			.find('input.album-title').val().trim();
+			.find('input.album-title').val();
+		if (default_album)
+			default_album = default_album.trim();
+		else
+			default_album = null;
+	}
 	else
 		default_album = null;
 	console.log('saving data:');
@@ -190,35 +220,32 @@ function	SavePreferences() {
 			window.mie_default_album = default_album;
 			window.mie_cmd_start = cmd_start;
 			window.mie_cmd_end = cmd_end;
-			SaveDefaultAlbum().then(
-				function() { console.log('success saving default album'); },
-				function() { console.log('failed to save default album'); }
-			);
-			SaveCommandStartEnd().then(
-				function() { console.log('success saving command start and end'); },
-				function() { console.log('failed to save command start and end'); }
-			);
-			SaveUrlWrappers(mie_wrappers).then(
-				function() { console.log('success saving url wrappers'); },
-				function() { console.log('failed to save url wrappers'); }
+			Promise.all([
+				SaveDefaultAlbum(),
+				SaveCommandStartEnd(),
+				SaveUrlWrappers(mie_wrappers)
+			]).then(
+				function() {
+					console.log('successfully saved all preferences');
+					$('#error-message').html('');
+					$('#success-message').css('display', 'block');
+				},
+				function(err) {
+					console.log(err);
+				}
 			);
 		},
-		function() { console.log('failed saving albums'); }
+		function(err) {
+			console.log(err);
+			$('#error-message').html('A problem occurred attempting to save preferences.');
+		}
 	);
 	return true;
 }
 	
 $('#save-button').click(OnSavePreferencesButtonClick);
-
-
-
-
-
-
-
-
-
-
+$('#success-message').css('display', 'none');
+$('#error-message').css('display', 'none');
 
 
 
