@@ -1,0 +1,28 @@
+#popup {
+	width: 200px;
+	min-height: 130px;
+	text-align: center;
+}
+
+body {
+	font-family: helvetica;
+}
+
+button {
+	display: inline-block;
+	padding: 5px 5px 5px 5px;
+	margin: 5px 5px 5px 5px;
+	background-color: #1D50AD;
+	font-size: 14px;
+	width: 160px;
+	color: white;
+}
+
+button:disabled {
+	background-color: #777777;
+}
+
+.mie_header {
+	font-size : 18px;
+	font-weight: bold;
+}

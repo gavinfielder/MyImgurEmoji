@@ -213,7 +213,7 @@ function	GetEmojiUrlByTagId(album, tag_id) {
 	for (var i = 0; i < album[2].length; i++)
 	{
 		//if description [1] has the given tag id, return its url [2]
-		if (album[2][i][1].includes(tag_id))
+		if (album[2][i][1] && album[2][i][1].includes(tag_id))
 			return (album[2][i][2]);
 	}
 	console.error('could not resolve album');
@@ -248,7 +248,7 @@ chrome.runtime.onMessage.addListener(
 			}
 			AddAlbum(request.album_hash, album_name).then(
 				function() { console.log('success adding album'); sendResponse('success'); },
-				function() { console.log('failed to add album'); sendResponse('failure'); }
+				function(err) { console.log('failed to add album', err); sendResponse('failure'); }
 			);
 		}
 	});
@@ -278,7 +278,7 @@ function	AddAlbum(album_hash, album_name)
 					function() { reject(Error('error saving albums.')); }
 				);
 			},
-			function() { reject(Error('error getting emoji set for new album')); }
+			function(err) { console.log(err); reject(Error('error getting emoji set for new album')); }
 		);
 	});
 }

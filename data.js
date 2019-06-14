@@ -61,6 +61,35 @@ function	GetEmojiSet(album_arr)
 	return new Promise(function(resolve, reject)
 	{
 		console.log('getting album images data for hash: ' + album_arr[0]);
+		
+		let req = new Request('https://api.imgur.com/3/album/' + album_arr[0] + '/images');
+		let head = new Headers();
+		head.append('Content-Type', 'json');
+		head.append('Authorization', 'Client-ID 7ead1100b84dd7f');
+
+		const init = {
+			method: 'GET',
+			headers: head,
+			mode: 'cors',
+			cache: 'default'
+		};
+		fetch(req, init).then(response => response.json()).then(data => {
+			console.log('got data: ', data);
+			var min_data = [];
+			data.data.forEach(function(img_data) {
+				min_data.push([img_data.id, img_data.description, img_data.link]);
+			});
+			album_arr.push(min_data);
+			resolve(min_data);
+			console.log('got album data:');
+			console.log(album_arr);
+		},
+		function (err) {
+			console.log('fetch failed: ', err);
+		});
+
+
+		/*
 		$.ajax({
 			url: 'https://api.imgur.com/3/album/' + album_arr[0] + '/images',
 			type: 'GET',
@@ -81,6 +110,7 @@ function	GetEmojiSet(album_arr)
 				reject(Error('error fetching album data from imgur api'));
 			}
 		});
+		*/
 	});
 }
 
