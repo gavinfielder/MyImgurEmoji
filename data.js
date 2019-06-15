@@ -62,18 +62,23 @@ function	GetEmojiSet(album_arr)
 	{
 		console.log('getting album images data for hash: ' + album_arr[0]);
 		
-		let req = new Request('https://api.imgur.com/3/album/' + album_arr[0] + '/images');
 		let head = new Headers();
-		head.append('Content-Type', 'json');
+		//head.append('Content-Type', 'application/json');
 		head.append('Authorization', 'Client-ID 7ead1100b84dd7f');
 
 		const init = {
 			method: 'GET',
 			headers: head,
 			mode: 'cors',
-			cache: 'default'
+			referrer: url/*,
+			cache: 'no-cache',
+			referrer: 'no-referrer'*/
 		};
-		fetch(req, init).then(response => response.json()).then(data => {
+
+		var url = 'https://api.imgur.com/3/album/' + album_arr[0] + '/images';
+		let req = new Request(url, init);
+
+		fetch(req).then(response => response.json()).then(data => {
 			console.log('got data: ', data);
 			var min_data = [];
 			data.data.forEach(function(img_data) {
@@ -87,30 +92,6 @@ function	GetEmojiSet(album_arr)
 		function (err) {
 			console.log('fetch failed: ', err);
 		});
-
-
-		/*
-		$.ajax({
-			url: 'https://api.imgur.com/3/album/' + album_arr[0] + '/images',
-			type: 'GET',
-			headers: {
-				Authorization: 'Client-ID 7ead1100b84dd7f'
-			},
-			success: function(data) {
-				var min_data = [];
-				data.data.forEach(function(img_data) {
-					min_data.push([img_data.id, img_data.description, img_data.link]);
-				});
-				album_arr.push(min_data);
-				resolve();
-				console.log('got album data:');
-				console.log(album_arr);
-			},
-			error: function(data) {
-				reject(Error('error fetching album data from imgur api'));
-			}
-		});
-		*/
 	});
 }
 
